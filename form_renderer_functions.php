@@ -3702,35 +3702,12 @@ function getAutoId()
 	// User is in a DAG, so only pull records from this DAG
 	if (isset($user_rights['group_id']) && $user_rights['group_id'] != "")
 	{
-		// Fetch group prefix: (AKH addition)
-		$akh_sql = "select * from redcap_data_access_groups where group_id = " . $user_rights['group_id'];
-		$akh_q = db_query($akh_sql);
-			
-		while ($row = db_fetch_assoc($akh_q))
-		{
-			$group_prefix = $row['group_prefix'];
-		}
-		db_free_result($akh_q);
-		
-		if ($group_prefix != "")
-		// We have a custom prefix for this group
-		{
-		$sql = "select distinct(substring(a.record,".(strlen($group_prefix)+2).")) as record
-				from redcap_data a left join redcap_data b
-				on a.project_id = b.project_id and a.record = b.record and b.field_name = '__GROUPID__'
-				where a.record like '{$group_prefix}-%' and a.field_name = '{$Proj->table_pk}'
-				and a.project_id = " . PROJECT_ID;
-		$recs = db_query($sql);
-		
-		}
-		else {
 		$sql = "select distinct(substring(a.record,".(strlen($user_rights['group_id'])+2).")) as record
 				from redcap_data a left join redcap_data b
 				on a.project_id = b.project_id and a.record = b.record and b.field_name = '__GROUPID__'
 				where a.record like '{$user_rights['group_id']}-%' and a.field_name = '{$Proj->table_pk}'
 				and a.project_id = " . PROJECT_ID;
 		$recs = db_query($sql);
-		}
 	}
 	// User is not in a DAG
 	else {
@@ -3750,21 +3727,9 @@ function getAutoId()
 	// Increment the highest value by 1 to get the new value
 	$holder++;
 	//If user is in a DAG append DAGid+dash to beginning of record
-	
-		
 	if (isset($user_rights['group_id']) && $user_rights['group_id'] != "")
 	{
-		
-		
-		if ($group_prefix != "")
-		{
-			// We have a custom prefix set for the group
-			$holder = $group_prefix . "-" . $holder;
-		}
-		else {
-			// We have no custom prefix, use group id
-			$holder = $user_rights['group_id'] . "-" . $holder;
-		}
+		$holder = $user_rights['group_id'] . "-" . $holder;
 	}
 	// Return new auto id value
 	return $holder;
